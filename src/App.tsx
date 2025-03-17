@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter as Router, Route, Routes, Link, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Link, useParams} from "react-router-dom";
 import { Button } from "./components/ui/button.tsx";
 import { Input } from "./components/ui/input.tsx";
 import { Select } from "./components/ui/select.tsx";
@@ -9,19 +9,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 const App = () => {
   const [teams, setTeams] = useState([
-    { name: "CHS-A", players: [{ name: "Alice", rating: 1200, wins: 0 }, { name: "Bob", rating: 1300, wins: 0 }, { name: "Carol", rating: 1250, wins: 0 }, { name: "Dan", rating: 1220, wins: 0 }], points: 0 },
-    { name: "CHS-B", players: [{ name: "Ellen", rating: 1190, wins: 0 }, { name: "Frank", rating: 1280, wins: 0 }, { name: "Grace", rating: 1240, wins: 0 }, { name: "Hank", rating: 1210, wins: 0 }], points: 0 },
-    { name: "LHS-A", players: [{ name: "Isaac", rating: 1320, wins: 0 }, { name: "Julia", rating: 1350, wins: 0 }, { name: "Kevin", rating: 1290, wins: 0 }, { name: "Lisa", rating: 1310, wins: 0 }], points: 0 },
-    { name: "LHS-B", players: [{ name: "Mike", rating: 1260, wins: 0 }, { name: "Nancy", rating: 1230, wins: 0 }, { name: "Oscar", rating: 1270, wins: 0 }, { name: "Pam", rating: 1240, wins: 0 }], points: 0 },
-    { name: "BHMS-A", players: [{ name: "Quinn", rating: 1330, wins: 0 }, { name: "Rachel", rating: 1290, wins: 0 }, { name: "Steve", rating: 1340, wins: 0 }, { name: "Tina", rating: 1300, wins: 0 }], points: 0 },
-    { name: "BHMS-B", players: [{ name: "Ursula", rating: 1230, wins: 0 }, { name: "Victor", rating: 1270, wins: 0 }, { name: "Wendy", rating: 1220, wins: 0 }, { name: "Xavier", rating: 1250, wins: 0 }], points: 0 },
-    { name: "THS-A", players: [{ name: "Yasmin", rating: 1310, wins: 0 }, { name: "Zack", rating: 1360, wins: 0 }, { name: "Amy", rating: 1280, wins: 0 }, { name: "Ben", rating: 1320, wins: 0 }], points: 0 }
+    { name: "CHS-A", players: [{ name: "CHS-A-1", rating: 1200, wins: 0}, { name: "CHS-A-2", rating: 1300, wins: 0 }, { name: "CHS-A-3", rating: 1250, wins: 0 }, { name: "CHS-A-4", rating: 1220, wins: 0 }], points: 0 },
+    { name: "CHS-B", players: [{ name: "CHS-B-1", rating: 1190, wins: 0}, { name: "CHS-B-2", rating: 1280, wins: 0 }, { name: "CHS-B-3", rating: 1240, wins: 0 }, { name: "CHS-B-4", rating: 1210, wins: 0 }], points: 0 },
+    { name: "LHS-A", players: [{ name: "LHS-A-1", rating: 1320, wins: 0}, { name: "LHS-A-2", rating: 1350, wins: 0 }, { name: "LHS-A-3", rating: 1290, wins: 0 }, { name: "LHS-A-4", rating: 1310, wins: 0 }], points: 0 },
+    { name: "LHS-B", players: [{ name: "LHS-B-1", rating: 1260, wins: 0 }, { name: "LHS-B-2", rating: 1230, wins: 0 }, { name: "LHS-B-3", rating: 1270, wins: 0 }, { name: "LHS-B-4", rating: 1240, wins: 0 }], points: 0 },
+    { name: "BHMS-A", players: [{ name: "BHMS-A-1", rating: 1330, wins: 0 }, { name: "BHMS-A-2", rating: 1290, wins: 0 }, { name: "BHMS-A-3", rating: 1340, wins: 0 }, { name: "BHMS-A-4", rating: 1300, wins: 0 }], points: 0 },
+    { name: "BHMS-B", players: [{ name: "BHMS-B-1", rating: 1230, wins: 0 }, { name: "BHMS-B-2", rating: 1270, wins: 0 }, { name: "BHMS-B-3", rating: 1220, wins: 0 }, { name: "BHMS-B-4", rating: 1250, wins: 0 }], points: 0 },
+    { name: "THS-A", players: [{ name: "THS-A-1", rating: 1310, wins: 0 }, { name: "THS-A-2", rating: 1360, wins: 0 }, { name: "THS-A-3", rating: 1280, wins: 0 }, { name: "THS-A-4", rating: 1320, wins: 0 }], points: 0 }
   ]);
   const [newTeam, setNewTeam] = useState({ name: "", players: [] });
   const [newPlayer, setNewPlayer] = useState({ name: "", rating: 1200 });
   const [matches, setMatches] = useState([]);
   const [rounds, setRounds] = useState([]);
   
+  const assignColor = () => {
+    let pairity = false;
+    teams.forEach(team => {
+      team.players.forEach(player =>{
+        if(pairity){
+          player.color = "bw".repeat(teams.length);
+        }else{
+          player.color = "wb".repeat(teams.length);
+        }
+        pairity = !pairity;
+      })
+    });
+    console.log(teams)
+  }
+  assignColor()
   const addPlayer = () => {
     if (newPlayer.name.trim() === "") return;
     setNewTeam({ ...newTeam, players: [...newTeam.players, { ...newPlayer, wins: 0 }] });
@@ -82,7 +97,7 @@ const App = () => {
     setTeams(updatedTeams);
   };
 
-  const generatePlayerMatches = (players1, players2) => {
+  const generatePlayerMatches = (players1, players2, round) => {
     let sorted1 = [...players1].sort((a, b) => b.rating - a.rating);
     let sorted2 = [...players2].sort((a, b) => b.rating - a.rating);
     return sorted1.map((player, index) => ({
@@ -113,7 +128,8 @@ const App = () => {
             players1: team1.players,
             players2: team2.players,
             result: null,
-            playerMatches: generatePlayerMatches(team1.players, team2.players)
+            playerMatches: generatePlayerMatches(team1.players, team2.players, round),
+            round: round
           };
           roundMatches.push(match);
           allMatches.push(match);
@@ -152,6 +168,7 @@ const App = () => {
                     <div>
                       <label htmlFor="teamName" className="block text-sm font-medium mb-1">Team Name</label>
                       <Input
+                        autocomplete="off"
                         id="teamName"
                         type="text"
                         placeholder="Team Name"
@@ -166,6 +183,7 @@ const App = () => {
                         <div>
                           <label htmlFor="playerName" className="block text-sm font-medium mb-1">Player Name</label>
                           <Input
+                            autocomplete="off"
                             id="playerName"
                             type="text"
                             placeholder="Player Name"
@@ -271,7 +289,7 @@ const App = () => {
                               <div className="flex items-center justify-between">
                                 <div>
                                   {match.result ? (
-                                    <Badge variant={match.result === "draw" ? "outline" : "default"}>
+                                    <Badge variant={match.result === "draw" ? "draw" : "default"}>
                                       {match.result === "draw" ? "Draw" : `Winner: ${match.result}`}
                                     </Badge>
                                   ) : (
@@ -352,6 +370,7 @@ const PlayerMatch = ({ matches, recordPlayerMatchResult, Submit }) => {
       </div>
     );
   }
+  console.log(match)
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -375,6 +394,7 @@ const PlayerMatch = ({ matches, recordPlayerMatchResult, Submit }) => {
             </TableHeader>
             <TableBody>
               {match.playerMatches.map((pm, index) => {
+                console.log(index)
                 let resultFormat = "0-0";
 
                 if (pm.result === pm.player1) {
@@ -389,14 +409,14 @@ const PlayerMatch = ({ matches, recordPlayerMatchResult, Submit }) => {
                   <TableRow key={index}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">
-                      {pm.player1}
-                      {pm.result === pm.player1 && <Badge className="ml-2" variant="default">W</Badge>}
-                      {pm.result === "draw" && <Badge className="ml-2" variant="outline">D</Badge>}
+                      {(match.players1[index].color[match.round] === "w"? pm.player1: pm.player2)} ({(match.players1[index].color[match.round] === "w"? match.team1: match.team2)})
+                      {pm.result === (match.players1[index].color[match.round] === "w"? pm.player1: pm.player2) && <Badge className="ml-2" variant="default">W</Badge>}
+                      {pm.result === "draw" && <Badge className="ml-2" variant="draw">D</Badge>}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {pm.player2}
-                      {pm.result === pm.player2 && <Badge className="ml-2" variant="default">W</Badge>}
-                      {pm.result === "draw" && <Badge className="ml-2" variant="outline">D</Badge>}
+                      {(match.players1[index].color[match.round] === "b"? pm.player1: pm.player2)} ({(match.players1[index].color[match.round] === "b"? match.team1: match.team2)})
+                      {pm.result === (match.players1[index].color[match.round] === "b"? pm.player1: pm.player2) && <Badge className="ml-2" variant="default">W</Badge>}
+                      {pm.result === "draw" && <Badge className="ml-2" variant="draw">D</Badge>}
                     </TableCell>
                     <TableCell>{resultFormat}</TableCell>
                     <TableCell>
@@ -406,8 +426,8 @@ const PlayerMatch = ({ matches, recordPlayerMatchResult, Submit }) => {
                         className="w-full"
                       >
                         <option value="">Select result</option>
-                        <option value={pm.player1}>White Won</option>
-                        <option value={pm.player2}>Black Won</option>
+                        <option value={(match.players1[index].color[match.round] === "w"? pm.player1: pm.player2)}>White Won</option>
+                        <option value={(match.players1[index].color[match.round] === "b"? pm.player1: pm.player2)}>Black Won</option>
                         <option value="draw">Draw</option>
                       </Select>
                     </TableCell>
@@ -421,7 +441,9 @@ const PlayerMatch = ({ matches, recordPlayerMatchResult, Submit }) => {
             <Link to="/">
               <Button variant="outline">Back to Tournament</Button>
             </Link>
-            <Button onClick={() => Submit(match)}>Submit Results</Button>
+            <Link to="/">
+              <Button onClick={() => {Submit(match)}}>Submit Results</Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
