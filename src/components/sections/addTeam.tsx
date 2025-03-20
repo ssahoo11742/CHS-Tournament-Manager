@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 
 export const AddTeamPage = ({setNewTeam, newTeam, setNewPlayer, newPlayer, addPlayer, addTeam}) =>{
-    console.log()
     return(
         <Card>
                 <CardHeader>

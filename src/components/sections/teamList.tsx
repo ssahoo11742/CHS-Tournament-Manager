@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 
 export const TeamList = ({teams, generateRounds}) =>{
-    console.log()
     return(
         <Card>
         <CardHeader>
@@ -27,6 +26,7 @@ export const TeamList = ({teams, generateRounds}) =>{
               </TableHeader>
               <TableBody>
                 {teams.map((team, index) => (
+
                   <TableRow key={index}>
                     <TableCell className="font-medium">{team.name}</TableCell>
                     <TableCell>{team.players.length}</TableCell>

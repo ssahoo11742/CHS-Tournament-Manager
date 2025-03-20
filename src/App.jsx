@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { BrowserRouter as Router, Route, Routes, Link, useParams} from "react-router-dom";
 import { Button } from "./components/ui/button.tsx";
 import { Input } from "./components/ui/input.tsx";
@@ -14,6 +14,7 @@ import { PlayerMatch } from "./components/sections/playerMatch.tsx";
 import supabase from "./config/supabaseClient.js";
 
 const App = () => {
+
   const [teams, setTeams] = useState([
     { name: "CHS-A", players: [{ name: "CHS-A-1", rating: 1200, wins: 0}, { name: "CHS-A-2", rating: 1300, wins: 0 }, { name: "CHS-A-3", rating: 1250, wins: 0 }, { name: "CHS-A-4", rating: 1220, wins: 0 }], points: 0 },
     { name: "CHS-B", players: [{ name: "CHS-B-1", rating: 1190, wins: 0}, { name: "CHS-B-2", rating: 1280, wins: 0 }, { name: "CHS-B-3", rating: 1240, wins: 0 }, { name: "CHS-B-4", rating: 1210, wins: 0 }], points: 0 },
@@ -28,6 +29,121 @@ const App = () => {
   const [matches, setMatches] = useState([]);
   const [rounds, setRounds] = useState([]);
   
+  async function addPlayerdb(playerData) {
+    const { data, error } = await supabase
+    .from('player')  // Table name
+    .insert([playerData])  // Insert player data
+    .single();
+
+    return data
+  }
+
+  async function addTeam() {
+    let playerIDS = [];
+    for (const player of newTeam.players) {
+      await addPlayerdb(player);
+    }
+    const { data, error1 } = await supabase
+      .from('player')  // Replace 'players' with your table name
+      .select('*')
+      .order('id', { ascending: false })  // Order by 'id' in descending order
+      .limit(1);  // Limit the results to just the first (which will be the last row)
+      console.log(data)
+    let id  = data[0].id
+    playerIDS = [id, id-1, id-2, id-3]
+
+    const { error } = await supabase
+    .from('team')
+    .insert({name:newTeam.name, points:0, players:playerIDS })
+
+    if (newTeam.name.trim() === "" || newTeam.players.length < 4) return;
+    setTeams([...teams, { ...newTeam, points: 0 }]);
+    setNewTeam({ name: "", players: [] });
+  }
+
+  const addPlayer = () => {
+    if (newPlayer.name.trim() === "") return;
+    setNewTeam({ ...newTeam, players: [...newTeam.players, { ...newPlayer, wins: 0 }] });
+    setNewPlayer({ name: "", rating: 1200 });
+  };
+
+
+  async function fetchRounds() {
+    const { data, error } = await supabase
+      .from('rounds')
+      .select("data, all_matches")
+      .order('id', { ascending: false })
+      .limit(1);
+
+    if (error) {
+        console.error("Supabase error:", error);
+        return;
+    }
+
+    if (data && data.length > 0) {
+        console.log("Fetched data:", data[0]); // Log the fetched data
+        setRounds(data); // Ensure data exists before setting state
+        setMatches(data[0].all_matches || []); // Ensure all_matches exists before setting state
+    } else {
+        console.warn("No data found in 'rounds' table.");
+        setRounds([]); // Set empty state to avoid undefined errors
+        setMatches([]);
+    }
+}
+
+  
+
+  async function addRounds(rounds, all_matches) {
+    const { error } = await supabase
+      .from('rounds')
+      .insert({data:rounds, all_matches:all_matches })
+  }
+
+  async function fetchPlayers(ids){
+    let playerLists = [];
+    const { data, error } = await supabase
+    .from('player')
+    .select("*")
+    .in("id", ids)
+    data.forEach(player => {
+      playerLists.push({name: player.name, id:player.id, rating: player.rating, wins:player.wins})
+    })
+    return playerLists
+  }
+  
+  async function fetchTeams() {
+    let teams_new = [];
+    const { data, error } = await supabase.from("team").select();
+    if (error) {
+      console.error("Error fetching teams:", error);
+      return;
+    }
+  
+    // Use 'for...of' to be able to use 'await'
+    for (const team of data) {
+      // Ensure team.players is in the correct format
+      let playerIds = team.players
+      
+      // Await fetchPlayers
+      let player_list = await fetchPlayers(playerIds);
+
+      teams_new.push({
+        id: team.id,
+        name: team.name,
+        points: team.points,
+        players: player_list,
+      });
+    }
+  
+    setTeams(teams_new);
+    return teams_new;
+  }
+  
+  useEffect(() => {
+    fetchRounds();
+    fetchTeams();
+  }, []);
+
   const assignColor = () => {
     let pairity = false;
     teams.forEach(team => {
@@ -40,20 +156,9 @@ const App = () => {
         pairity = !pairity;
       })
     });
-    console.log(teams)
   }
   assignColor()
-  const addPlayer = () => {
-    if (newPlayer.name.trim() === "") return;
-    setNewTeam({ ...newTeam, players: [...newTeam.players, { ...newPlayer, wins: 0 }] });
-    setNewPlayer({ name: "", rating: 1200 });
-  };
 
-  const addTeam = () => {
-    if (newTeam.name.trim() === "" || newTeam.players.length < 4) return;
-    setTeams([...teams, { ...newTeam, points: 0 }]);
-    setNewTeam({ name: "", players: [] });
-  };
 
   const determineMatchWinner = (match) => {
     let team1Wins = match.playerMatches.filter(pm => pm.result === pm.player1).length;
@@ -147,6 +252,8 @@ const App = () => {
 
     setRounds(matchRounds);
     setMatches(allMatches);
+    addRounds(matchRounds, allMatches);
+    // window.location.reload()
   };
 
   const determineTiebreaker = (team1, team2) => {
@@ -154,7 +261,6 @@ const App = () => {
     let team2Wins = team2.players.reduce((acc, player) => acc + player.wins, 0);
     return team1Wins > team2Wins ? team1.name : team2Wins > team1Wins ? team2.name : "Still Tied";
   };
-  console.log(newTeam)
   return (
     <Router>
       <Routes>

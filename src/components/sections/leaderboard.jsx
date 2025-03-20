@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 
 export const Leaderboard = ({teams, determineTiebreaker}) =>{
-    console.log()
     return(
         <Card className="mt-8">
         <CardHeader>

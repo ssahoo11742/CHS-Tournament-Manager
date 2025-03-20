@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 
 
 export const PlayerMatch = ({ matches, recordPlayerMatchResult, Submit }) => {
+    console.log(matches)
     const { matchId } = useParams();
     const match = matches[matchId];
   
